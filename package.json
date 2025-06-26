@@ -1,5 +1,12 @@
 {
+  "name": "n8n-railway",
+  "version": "1.0.0",
+  "description": "Custom deployment of n8n with google-auth-library for Firebase JWT support",
+  "main": "index.js",
+  "scripts": {
+    "start": "n8n"
+  },
   "dependencies": {
-    "google-auth-library": "^10.1.0"
+    "google-auth-library": "^9.0.0"
   }
 }
