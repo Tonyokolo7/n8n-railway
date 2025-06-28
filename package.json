@@ -14,7 +14,7 @@
   },
   "n8n": {
     "nodes": [
-      "nodes/custom-nodes"
+      "nodes/custom"
     ]
   }
 }
