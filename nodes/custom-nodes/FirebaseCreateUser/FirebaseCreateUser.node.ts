@@ -1,15 +1,6 @@
-import {
-  IExecuteFunctions,
-  INodeExecutionData,
-  INodeType,
-  INodeTypeDescription,
-  IDataObject,
-} from 'n8n-workflow';
-
-import { firebaseConfig } from './helpers/firebase';
-import * as admin from 'firebase-admin';
-
-let firebaseInitialized = false;
+import { IExecuteFunctions } from 'n8n-workflow';
+import { INodeExecutionData, INodeType, INodeTypeDescription } from 'n8n-workflow';
+import { admin } from './helpers/firebase';
 
 export class FirebaseCreateUser implements INodeType {
   description: INodeTypeDescription = {
@@ -17,9 +8,9 @@ export class FirebaseCreateUser implements INodeType {
     name: 'firebaseCreateUser',
     group: ['transform'],
     version: 1,
-    description: 'Creates a new Firebase Auth user',
+    description: 'Creates a new user in Firebase Authentication',
     defaults: {
-      name: 'FirebaseCreateUser',
+      name: 'Firebase Create User',
     },
     inputs: ['main'],
     outputs: ['main'],
@@ -30,6 +21,7 @@ export class FirebaseCreateUser implements INodeType {
         type: 'string',
         default: '',
         required: true,
+        description: 'Email address of the new user',
       },
       {
         displayName: 'Password',
@@ -37,6 +29,7 @@ export class FirebaseCreateUser implements INodeType {
         type: 'string',
         default: '',
         required: true,
+        description: 'Password for the new user',
       },
     ],
   };
@@ -45,26 +38,19 @@ export class FirebaseCreateUser implements INodeType {
     const items = this.getInputData();
     const returnData: INodeExecutionData[] = [];
 
-    if (!firebaseInitialized) {
-      admin.initializeApp({
-        credential: admin.credential.cert(firebaseConfig as admin.ServiceAccount),
-      });
-      firebaseInitialized = true;
-    }
-
     for (let i = 0; i < items.length; i++) {
       const email = this.getNodeParameter('email', i) as string;
       const password = this.getNodeParameter('password', i) as string;
 
       try {
-        const userRecord = await admin.auth().createUser({
-          email,
-          password,
+        const userRecord = await admin.auth().createUser({ email, password });
+        returnData.push({ json: { uid: userRecord.uid, email: userRecord.email } });
+      } catch (error: unknown) {
+        returnData.push({
+          json: {
+            error: (error as Error).message,
+          },
         });
-
-        returnData.push({ json: userRecord as unknown as IDataObject });
-      } catch (error) {
-        returnData.push({ json: { error: (error as Error).message } });
       }
     }
 
